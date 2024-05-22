@@ -37,6 +37,7 @@ public class PlayerController : MonoBehaviour
     {
         cam = Camera.main;
         Cursor.lockState = CursorLockMode.Locked;
+        UIController.instance.weaponTempSlider.maxValue = maxHeat;
     }
 
     // Update is called once per frame
@@ -114,13 +115,14 @@ public class PlayerController : MonoBehaviour
             {
                 // heatCounter = 0;
                 overHeated = false;
+                UIController.instance.overheatedMessage.gameObject.SetActive(false);
             }
         }
         if (heatCounter < 0)
         {
             heatCounter = 0;
         }
-
+        UIController.instance.weaponTempSlider.value = heatCounter;
 
         CursorUpdate();
     }
@@ -155,6 +157,7 @@ public class PlayerController : MonoBehaviour
         {
             heatCounter = maxHeat;
             overHeated = true;
+            UIController.instance.overheatedMessage.gameObject.SetActive(true);
         }
 
     }
