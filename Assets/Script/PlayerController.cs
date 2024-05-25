@@ -26,18 +26,27 @@ public class PlayerController : MonoBehaviour
     public LayerMask groundLayers;
     [Space]
     public GameObject bulletImpact;
-    public float timeBetweenShot = .1f;
+    // public float timeBetweenShot = .1f;
     public float shorCounter;
+    public float muzzleDisplayTime;
+    private float muzzleCounter;
 
-    public float maxHeat = 10f, heatPerShot = 1f, coolRate = 4f, overheatCoolRate = 5f;
+    public float maxHeat = 10f/*, heatPerShot = 1f*/, coolRate = 4f, overheatCoolRate = 5f;
     [SerializeField] private float heatCounter;
     [SerializeField] private bool overHeated;
+
+    public Gun[] allGuns;
+    private int selectedGun;
     // Start is called before the first frame update
     void Start()
     {
         cam = Camera.main;
         Cursor.lockState = CursorLockMode.Locked;
         UIController.instance.weaponTempSlider.maxValue = maxHeat;
+        SwitchGun();
+        Transform newTrans = SpawnManager.instance.GetSpawnPoint();
+        transform.position = newTrans.position;
+        transform.rotation = newTrans.rotation;
     }
 
     // Update is called once per frame
@@ -89,13 +98,23 @@ public class PlayerController : MonoBehaviour
         movement.y += Physics.gravity.y * Time.deltaTime * gravityMod;
         charCon.Move(movement * Time.deltaTime);
 
+        if (allGuns[selectedGun].muzzleFlash.activeInHierarchy)
+        {
+            muzzleCounter -= Time.deltaTime;
+            if (muzzleCounter <= 0)
+            {
+                allGuns[selectedGun].muzzleFlash.SetActive(false);
+
+            }
+        }
+
         if (!overHeated)
         {
             if (Input.GetMouseButtonDown(0))
             {
                 Shoot();
             }
-            if (Input.GetMouseButton(0))
+            if (Input.GetMouseButton(0) && allGuns[selectedGun].isAutomatic)
             {
                 shorCounter -= Time.deltaTime;
 
@@ -117,12 +136,42 @@ public class PlayerController : MonoBehaviour
                 overHeated = false;
                 UIController.instance.overheatedMessage.gameObject.SetActive(false);
             }
+
         }
         if (heatCounter < 0)
         {
             heatCounter = 0;
         }
         UIController.instance.weaponTempSlider.value = heatCounter;
+
+        if (Input.GetAxisRaw("Mouse ScrollWheel") > 0f)
+        {
+            selectedGun++;
+            if (selectedGun >= allGuns.Length)
+            {
+                selectedGun = 0;
+            }
+            SwitchGun();
+        }
+        else if (Input.GetAxisRaw("Mouse ScrollWheel") < 0f)
+        {
+            selectedGun--;
+            if (selectedGun < 0)
+            {
+
+                selectedGun = 0;
+            }
+            SwitchGun();
+
+        }
+        for (int i = 0; i < allGuns.Length; i++)
+        {
+            if (Input.GetKeyDown((i + 1).ToString()))
+            {
+                selectedGun = i;
+                SwitchGun();
+            }
+        }
 
         CursorUpdate();
     }
@@ -151,19 +200,29 @@ public class PlayerController : MonoBehaviour
             Destroy(bulletImapactObject, 10f);
             //hit.normal: เป็นเวกเตอร์ที่ตั้งฉากกับพื้นผิวที่ชน นี่มักถูกใช้เพื่อหาทิศทางของการชน
         }
-        shorCounter = timeBetweenShot;
-        heatCounter += heatPerShot;
+        shorCounter = allGuns[selectedGun].timeBetweenShots;
+        heatCounter += allGuns[selectedGun].heatPerShot;
         if (heatCounter >= maxHeat)
         {
             heatCounter = maxHeat;
             overHeated = true;
             UIController.instance.overheatedMessage.gameObject.SetActive(true);
         }
-
+        allGuns[selectedGun].muzzleFlash.SetActive(true);
+        muzzleCounter = muzzleDisplayTime;
     }
     private void LateUpdate()
     {
         cam.transform.position = viewPoint.position;
         cam.transform.rotation = viewPoint.rotation;
+    }
+    void SwitchGun()
+    {
+        foreach (Gun gun in allGuns)
+        {
+            gun.gameObject.SetActive(false);
+        }
+        allGuns[selectedGun].gameObject.SetActive(true);
+        allGuns[selectedGun].muzzleFlash.SetActive(false);
     }
 }
