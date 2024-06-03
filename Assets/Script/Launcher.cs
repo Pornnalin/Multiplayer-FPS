@@ -4,6 +4,7 @@ using UnityEngine;
 using Photon.Pun;
 using TMPro;
 using Photon.Realtime;
+using UnityEngine.UI;
 public class Launcher : MonoBehaviourPunCallbacks
 {
     public static Launcher instance;
@@ -28,6 +29,10 @@ public class Launcher : MonoBehaviourPunCallbacks
     public GameObject nameInputScreen;
     public TMP_InputField nameInputField;
     private bool hasSetNick;
+    public string levelToPlay;
+    public Button startGameBtn;
+
+    public GameObject roomTestButton;
     void Awake()
     {
         instance = this;
@@ -39,6 +44,10 @@ public class Launcher : MonoBehaviourPunCallbacks
         loadingScreen.SetActive(true);
         loadingText.text = "Connecting To Network...";
         PhotonNetwork.ConnectUsingSettings();
+
+#if UNITY_EDITOR
+        roomTestButton.SetActive(true);
+#endif
     }
     void CloseMenu()
     {
@@ -56,6 +65,7 @@ public class Launcher : MonoBehaviourPunCallbacks
         Debug.Log("Connect to Master");
         PhotonNetwork.JoinLobby();
         loadingText.text = "Join Lobby";
+        PhotonNetwork.AutomaticallySyncScene = true;
         Debug.Log("Join Lobby");
 
     }
@@ -109,6 +119,15 @@ public class Launcher : MonoBehaviourPunCallbacks
         roomNameText.text = PhotonNetwork.CurrentRoom.Name;
         Debug.Log("JoinRoom");
         ListAllPlayer();
+
+        if (PhotonNetwork.IsMasterClient)
+        {
+            startGameBtn.interactable = true;
+        }
+        else
+        {            
+            startGameBtn.interactable = false;
+        }
     }
     private void ListAllPlayer()
     {
@@ -215,6 +234,32 @@ public class Launcher : MonoBehaviourPunCallbacks
             menuBtn.SetActive(true);
             hasSetNick = true;
         }
+    }
+    public void StartGame()
+    {
+        PhotonNetwork.LoadLevel(levelToPlay);
+    }
+
+    public override void OnMasterClientSwitched(Player newMasterClient)
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            startGameBtn.interactable = true;
+        }
+        else
+        {
+            startGameBtn.interactable = false;
+        }
+    }
+
+    public void QuickJoin()
+    {
+        RoomOptions option = new RoomOptions();
+        option.MaxPlayers = 8;
+        PhotonNetwork.CreateRoom("Test", option);
+        CloseMenu();
+        loadingText.text = "Create Room...";
+        loadingScreen.SetActive(true);
     }
     public void QuitGame()
     {
