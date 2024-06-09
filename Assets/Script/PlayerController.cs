@@ -37,6 +37,8 @@ public class PlayerController : MonoBehaviourPunCallbacks
 
     public Gun[] allGuns;
     private int selectedGun;
+
+    public GameObject playerHitImpact;
     // Start is called before the first frame update
     void Start()
     {
@@ -198,10 +200,22 @@ public class PlayerController : MonoBehaviourPunCallbacks
         ray.origin = cam.transform.position;
         if (Physics.Raycast(ray, out RaycastHit hit))
         {
-            Debug.Log("We hit" + hit.collider);
-            GameObject bulletImapactObject = Instantiate(bulletImpact, hit.point + (hit.normal * 0.002f), Quaternion.LookRotation(hit.normal, Vector3.up));
-            Destroy(bulletImapactObject, 10f);
-            //hit.normal: เป็นเวกเตอร์ที่ตั้งฉากกับพื้นผิวที่ชน นี่มักถูกใช้เพื่อหาทิศทางของการชน
+            if (hit.collider.CompareTag("Player"))
+            {
+                Debug.Log("I hit : " + hit.collider.gameObject.GetPhotonView().Owner.NickName);
+
+                PhotonNetwork.Instantiate(playerHitImpact.name, hit.point, Quaternion.identity);
+
+                hit.collider.gameObject.GetPhotonView().RPC(nameof(DealDamage), RpcTarget.All, photonView.Owner.NickName);
+                
+            }
+            else
+            {
+                Debug.Log("I hit" + hit.collider);
+                GameObject bulletImapactObject = Instantiate(bulletImpact, hit.point + (hit.normal * 0.002f), Quaternion.LookRotation(hit.normal, Vector3.up));
+                Destroy(bulletImapactObject, 10f);
+                //hit.normal: เป็นเวกเตอร์ที่ตั้งฉากกับพื้นผิวที่ชน นี่มักถูกใช้เพื่อหาทิศทางของการชน
+            }
         }
         shorCounter = allGuns[selectedGun].timeBetweenShots;
         heatCounter += allGuns[selectedGun].heatPerShot;
@@ -213,6 +227,20 @@ public class PlayerController : MonoBehaviourPunCallbacks
         }
         allGuns[selectedGun].muzzleFlash.SetActive(true);
         muzzleCounter = muzzleDisplayTime;
+    }
+    [PunRPC]
+    public void DealDamage(string damager)
+    {
+        TakeDamage(damager);
+    }
+    public void TakeDamage(string damager)
+    {
+        if (photonView.IsMine)
+        {
+          //  Debug.Log(photonView.Owner.NickName + " been hit : " + damager);
+       //     gameObject.SetActive(false);
+            PlayerSpawner.instance.Die(damager);
+        }
     }
     private void LateUpdate()
     {
