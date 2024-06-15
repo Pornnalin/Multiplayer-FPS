@@ -9,6 +9,7 @@ public class UIController : MonoBehaviour
     public Slider weaponTempSlider;
     public TMP_Text deathText;
     public GameObject deathScreen;
+    public Slider healthSlider;
     private void Awake()
     {
         if (instance == null)
