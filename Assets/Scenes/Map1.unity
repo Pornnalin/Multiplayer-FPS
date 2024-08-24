@@ -38,7 +38,6 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.18028378, g: 0.22571412, b: 0.30692285, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -2453,7 +2452,7 @@ GameObject:
   - component: {fileID: 1673558450}
   - component: {fileID: 1673558449}
   m_Layer: 0
-  m_Name: MarchManager
+  m_Name: MatchManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2471,6 +2470,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ce531665bdb8f764395d0ef30d9eb1b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  allPlayers:
+  - name: 
+    actor: 0
+    kills: 0
+    deaths: 0
 --- !u!4 &1673558450
 Transform:
   m_ObjectHideFlags: 0
